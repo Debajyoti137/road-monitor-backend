@@ -34,8 +34,9 @@ def predict_road_condition():
         })
         
     except Exception as e:
+        # THIS IS THE MAGIC LINE:
+        print(f"CRITICAL AI ERROR: {str(e)}", flush=True) 
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 if __name__ == '__main__':
-    # Run the server on all network interfaces
     app.run(host='0.0.0.0', port=5000, debug=True)
