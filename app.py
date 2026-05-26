@@ -15,26 +15,31 @@ def predict_road_condition():
         # 1. Get the 10 data points sent from the mobile app
         data = request.json['window']
         
-        # 2. Extract just the X, Y, Z values for the AI
-        # (Modify this if your model needs specific features like standard deviation)
-        features = []
-        for point in data:
-            features.extend([point['x'], point['y'], point['z']])
-            
-        # Convert to a 2D numpy array (1 sample, 30 features)
-        input_data = np.array(features).reshape(1, -1)
+        # 2. Separate the incoming data into individual X, Y, and Z lists
+        x_vals = [point['x'] for point in data]
+        y_vals = [point['y'] for point in data]
+        z_vals = [point['z'] for point in data]
         
-        # 3. Ask the Random Forest model for a prediction
+        # 3. Calculate the exact 4 features the Random Forest model needs
+        accZ_std = np.std(z_vals)
+        accZ_p2p = np.ptp(z_vals)  # np.ptp calculates Peak-to-Peak (Max - Min)
+        accX_std = np.std(x_vals)
+        accY_std = np.std(y_vals)
+        
+        # 4. Package them into a 2D array in the EXACT order the model expects
+        input_data = np.array([accZ_std, accZ_p2p, accX_std, accY_std]).reshape(1, -1)
+        
+        # 5. Ask the Random Forest model for a prediction
         prediction = model.predict(input_data)[0]
         
-        # 4. Send the result back to the phone
+        # 6. Send the result back to the phone
         return jsonify({
             'status': 'success',
-            'label': str(prediction) # Usually returns 'G', 'B', or 'P'
+            'label': str(prediction) 
         })
         
     except Exception as e:
-        # THIS IS THE MAGIC LINE:
+        # If anything crashes, print it to the Render logs
         print(f"CRITICAL AI ERROR: {str(e)}", flush=True) 
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
