@@ -2,12 +2,18 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import numpy as np
+import warnings # 1. Import the warnings library
+
+# 2. Tell Scikit-Learn to stop whining about feature names
+warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 app = Flask(__name__)
-CORS(app) # This allows your mobile app to talk to the server
+CORS(app) 
 
 # Load your trained model
 model = joblib.load('road_model.pkl')
+
+# ... the rest of your predict_road_condition() code stays exactly the same ...
 
 @app.route('/predict', methods=['POST'])
 def predict_road_condition():
